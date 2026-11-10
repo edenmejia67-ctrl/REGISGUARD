@@ -1,0 +1,37 @@
+# Publishes the website to GitHub Pages every time you commit to main.
+# One-time setup: repository Settings > Pages > Build and deployment > Source = "GitHub Actions".
+# (If you would rather use "Deploy from a branch" (main, / root), delete this file instead.)
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # lets you press "Run workflow" manually
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Collect the website files (only these are published)
+        run: |
+          mkdir _site
+          cp index.html config.js sw.js manifest.webmanifest icon-192.png icon-512.png dhs-logo.jpg _site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
